@@ -10,26 +10,28 @@ SECTION .text
 
 Main:
     Menu:
+    MOV al, 00h ; Pagina del menu
+    CALL CambiarPagina
     CALL ModoTexto ; Activa el modo texto
     mov dl, 25h ; pos cursor columna
     mov dh, 05h ; pos curso fila
     CALL PosicionCursorCadena ; posicion del cursor
-    MOV SI, msgmenu ; valor a imprimir en la cadena
+    MOV si, msgmenu ; valor a imprimir en la cadena
     CALL ImprimirCadena ; imprime el texto
     mov dl, 25h ; pos cursor columna
     mov dh, 06h ; pos curso fila
     CALL PosicionCursorCadena ; posicion del cursor
-    MOV SI, msg01 ; valor a imprimir en la cadena
+    MOV si, msg01 ; valor a imprimir en la cadena
     CALL ImprimirCadena ; imprime el texto
     mov dl, 25h ; pos cursor columna
     mov dh, 07h ; pos curso fila
     CALL PosicionCursorCadena ; posicion del cursor
-    MOV SI, msg02 ; valor a imprimir en la cadena
+    MOV si, msg02 ; valor a imprimir en la cadena
     CALL ImprimirCadena ; imprime el texto
     mov dl, 25h ; pos cursor columna
     mov dh, 08h ; pos curso fila
     CALL PosicionCursorCadena ; posicion del cursor
-    MOV SI, msg03 ; valor a imprimir en la cadena
+    MOV si, msg03 ; valor a imprimir en la cadena
     CALL ImprimirCadena ; imprime el texto
     CALL BucleTecladoOpciones ; Espera las opciones del teclado
     INT 20h
@@ -38,10 +40,10 @@ Main:
 BucleTecladoOpciones:
     CALL ModoTeclado
     cmp al,"1"
-    je ;Ir a
+    je ;Ir a pagina 1
     cmp al,"2"
-    je ;Ir a 
-    cmp al,"S"
+    je ;Ir a pagina 2
+    cmp al,"S" 
     je Menu ;Ir al menu
     jmp BucleTecladoOpciones
     ret
@@ -67,14 +69,18 @@ ModoTexto:
     mov al, 03h
     int 10h
     ret
-PosicionCursorCadena:
+PosicionCursorCadena: ; DL Columnas / DH Filas
     mov ah, 02h
     mov bh, 00h
     int 10h
     ret
-ImprimirCadena: ;SI contenido de la cadena
+ImprimirCadena: ; SI contenido de la cadena
     mov ah, 09h
-    mov dx, SI
+    mov dx, si
     int 21h
     ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CambiarPagina: ; AL es la pagina a la que nos cambiaremos
+    mov ah, 05h
+    int 10h 
+    ret 
