@@ -4,7 +4,7 @@ SECTION .data
     msgmenu db "MENU:$"
     msg01 db "1. Para ver fig 1$"
     msg02 db "2. Para salir$"
-    msg03 db "S. Para regresar$"
+    msg03 db "S. Para regresar al menu$"
     fin db "Fin$"
 SECTION .text
 
@@ -31,10 +31,23 @@ Main:
     CALL PosicionCursorCadena ; posicion del cursor
     MOV SI, msg03 ; valor a imprimir en la cadena
     CALL ImprimirCadena ; imprime el texto
+    CALL BucleTecladoOpciones ; Espera las opciones del teclado
     INT 20h
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; AUXILIARES
+BucleTecladoOpciones:
+    CALL ModoTeclado
+    cmp al,"1"
+    je ;Ir a
+    cmp al,"2"
+    je ;Ir a 
+    cmp al,"S"
+    je Menu ;Ir al menu
+    jmp BucleTecladoOpciones
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; MODO DIBUJO
 DibujarRectangulo:
 
 DibujarTriangulo:
@@ -42,9 +55,12 @@ DibujarTriangulo:
 DibujarLinea:
 
 ModoVideo:
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; MODO TECLADO
-
+ModoTeclado:
+    mov ah, 00h
+    int 16h
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; MODO TEXTO
 ModoTexto:
     mov ah, 00h
@@ -61,3 +77,4 @@ ImprimirCadena: ;SI contenido de la cadena
     mov dx, SI
     int 21h
     ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
