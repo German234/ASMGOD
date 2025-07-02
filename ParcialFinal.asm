@@ -2,85 +2,132 @@ ORG 100h
 
 SECTION .data
     msgmenu db "MENU:$"
-    msg01 db "1. Para ver fig 1$"
-    msg02 db "2. Para salir$"
-    msg03 db "S. Para regresar al menu$"
-    fin db "Fin$"
-SECTION .text
+    msg01   db "1. Para ver fig 1$"
+    msg02   db "2. Para salir$"
+    msg03   db "S. Para regresar al menu$"
+    fin     db "Fin$"
 
+SECTION .text
 Main:
-    Menu:
-    MOV al, 00h ; Pagina del menu
-    CALL CambiarPagina
-    CALL ModoTexto ; Activa el modo texto
-    mov dl, 25h ; pos cursor columna
-    mov dh, 05h ; pos curso fila
-    CALL PosicionCursorCadena ; posicion del cursor
-    MOV si, msgmenu ; valor a imprimir en la cadena
-    CALL ImprimirCadena ; imprime el texto
-    mov dl, 25h ; pos cursor columna
-    mov dh, 06h ; pos curso fila
-    CALL PosicionCursorCadena ; posicion del cursor
-    MOV si, msg01 ; valor a imprimir en la cadena
-    CALL ImprimirCadena ; imprime el texto
-    mov dl, 25h ; pos cursor columna
-    mov dh, 07h ; pos curso fila
-    CALL PosicionCursorCadena ; posicion del cursor
-    MOV si, msg02 ; valor a imprimir en la cadena
-    CALL ImprimirCadena ; imprime el texto
-    mov dl, 25h ; pos cursor columna
-    mov dh, 08h ; pos curso fila
-    CALL PosicionCursorCadena ; posicion del cursor
-    MOV si, msg03 ; valor a imprimir en la cadena
-    CALL ImprimirCadena ; imprime el texto
-    CALL BucleTecladoOpciones ; Espera las opciones del teclado
+    call Menu
+    INT 20h                 ; Termina programa
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Menu:
+    ; --- Texto en página 1 ---
+    call ModoTexto          ; AH=00h/AL=03h → modo texto 80×25
+    mov al, 1
+    call CambiarPagina      ; INT 10h AH=05h → activa página 1
+
+    ; Imprime las líneas del menú
+    mov dl, 25h             ; columna 25
+    mov dh, 05h             ; fila 5
+    mov bh, 1          ; página 1
+    call PosicionCursorCadena
+    mov si, msgmenu
+    call ImprimirCadena
+
+    mov dl, 25h
+    mov dh, 06h
+    mov bh, 1          ; página 1
+    call PosicionCursorCadena
+    mov si, msg01
+    call ImprimirCadena
+
+    mov dl, 25h
+    mov dh, 07h
+    mov bh, 1          ; página 1
+    call PosicionCursorCadena
+    mov si, msg02
+    call ImprimirCadena
+
+    mov dl, 25h
+    mov dh, 08h
+    mov bh, 1          ; página 1
+    call PosicionCursorCadena
+    mov si, msg03
+    call ImprimirCadena
+
+    call BucleTecladoOpciones
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+PaginaUno:
+    ; --- Texto en página 2 ---
+    call ModoTexto
+    mov al, 2
+    call CambiarPagina
+
+    mov dl, 25h
+    mov dh, 05h
+    mov bh, 2          ; página 2
+    call PosicionCursorCadena
+    mov si, msgmenu
+    call ImprimirCadena
+
+    call BucleTecladoOpciones
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+PaginaDos:
+    ; --- Texto en página 3 ---
+    call ModoTexto
+    mov al, 3
+    call CambiarPagina
+    mov bh, 3          ; página 3
+    mov dl, 25h
+    mov dh, 05h
+    call PosicionCursorCadena
+    mov si, msg02
+    call ImprimirCadena
+
+    call FinaldelPrograma
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+FinaldelPrograma:
     INT 20h
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; AUXILIARES
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 BucleTecladoOpciones:
-    CALL ModoTeclado
-    cmp al,"1"
-    je ;Ir a pagina 1
-    cmp al,"2"
-    je ;Ir a pagina 2
-    cmp al,"S" 
-    je Menu ;Ir al menu
+    call ModoTeclado        ; AH=00h INT 16h → espera tecla
+    cmp al, "1"
+    je PaginaUno
+    cmp al, "2"
+    je PaginaDos
+    cmp al, "S"
+    je Menu
     jmp BucleTecladoOpciones
     ret
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MODO DIBUJO
-DibujarRectangulo:
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Rutinas BIOS / DOS
 
-DibujarTriangulo:
-
-DibujarLinea:
-
-ModoVideo:
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MODO TECLADO
-ModoTeclado:
+ModoTeclado:                ; Lee una tecla
     mov ah, 00h
     int 16h
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MODO TEXTO
-ModoTexto:
+    ret
+
+ModoTexto:                  ; Modo texto 80×25
     mov ah, 00h
     mov al, 03h
     int 10h
     ret
-PosicionCursorCadena: ; DL Columnas / DH Filas
+
+PosicionCursorCadena:       ; DL=columna, DH=fila, BH=página (0)
     mov ah, 02h
-    mov bh, 00h
+    
     int 10h
     ret
-ImprimirCadena: ; SI contenido de la cadena
+
+ImprimirCadena:             ; DS:SI apunta a "texto$", usa AH=09h
     mov ah, 09h
     mov dx, si
     int 21h
     ret
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-CambiarPagina: ; AL es la pagina a la que nos cambiaremos
+
+CambiarPagina:              ; AL = página deseada
     mov ah, 05h
-    int 10h 
-    ret 
+    int 10h
+    ret
