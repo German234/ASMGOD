@@ -1,16 +1,33 @@
 org 100h
 section .data
-    cadena DB 'Cristofer Diaz$'
+    cadenauno DB 'Cristofer Diaz$'
+    cadenados DB "Hola$"
+    cadenatres DB "ADIOS$"
+    prueba DB "XD$"
 section .text
-    ; Mas o menos centrado
-    mov dl, 25h ; pos cursor col
-    mov dh, 0bh
+    
+menu:
     call modo_texto
-
-bucle:
+    mov dl, 25h ; pos cursor columna
+    mov dh, 01h ; pos curso fila
     call pos_cursor
+    MOV SI, cadenauno
     call escribir_cadena
-end: 
+    mov dl, 25h ; pos cursor columna
+    mov dh, 02h ; pos curso fila
+    call pos_cursor
+    MOV SI, cadenados
+    call escribir_cadena
+    mov dl, 25h ; pos cursor columna
+    mov dh, 03h ; pos curso fila
+    call pos_cursor
+    MOV SI, cadenatres
+    call escribir_cadena
+    mov dl, 25h ; pos cursor columna
+    mov dh, 03h ; pos curso fila
+    call pos_cursor
+    MOV SI, cadenatres
+    call escribir_cadena
     int 20h
 
 modo_texto:
@@ -21,7 +38,7 @@ modo_texto:
 
 escribir_cadena:
     mov ah, 09h
-    mov dx, cadena
+    mov dx, SI
     int 21h
     ret
 
